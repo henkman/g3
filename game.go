@@ -17,15 +17,17 @@ func (p *Player) Render(render *sdl.Renderer) {
 
 type Game struct {
 	Player Player
+	Map    Map
 }
 
 func (g *Game) Init(gd GameData) {
-	w, h, _ := gd.Render.GetRendererOutputSize()
+
 	p := &g.Player
 	p.Width = 32
 	p.Height = 32 * 2
-	p.Position.X = float32(w) / 2
-	p.Position.Y = float32(h) / 2
+	g.Map = LoadMap(gd, "1.json")
+	p.Position.X = float32(g.Map.Spawn.X)
+	p.Position.Y = float32(g.Map.Spawn.Y)
 }
 
 func (g *Game) Run(gd GameData) Scene {
@@ -51,7 +53,11 @@ func (g *Game) Run(gd GameData) Scene {
 			w, h, _ := gd.Render.GetRendererOutputSize()
 			p := &g.Player
 			floored := func() bool {
-				return p.Position.Y >= float32(h-int(p.Height))
+				if uint(p.Position.Y)%32 != 0 {
+					return false
+				}
+				// vlalala
+				return true
 			}
 
 			kb := sdl.GetKeyboardState()
@@ -84,6 +90,7 @@ func (g *Game) Run(gd GameData) Scene {
 		gd.Render.SetDrawColor(0x00, 0x00, 0x00, 0xFF)
 		gd.Render.Clear()
 		{
+			g.Map.Render(gd.Render)
 			g.Player.Render(gd.Render)
 		}
 		gd.Render.Present()
