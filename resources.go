@@ -62,16 +62,16 @@ func LoadMap(gd GameData, res string) Map {
 		Properties struct {
 			Name string `json:"name"`
 		} `json:"properties"`
-		Height uint `json:"height"`
-		Width  uint `json:"width"`
+		Height uint32 `json:"height"`
+		Width  uint32 `json:"width"`
 		Layers []struct {
 			Data    []Tile `json:"data,omitempty"`
 			Name    string `json:"name"`
 			Objects []struct {
 				Name     string `json:"name"`
 				Rotation int    `json:"rotation"`
-				X        uint   `json:"x"`
-				Y        uint   `json:"y"`
+				X        uint32 `json:"x"`
+				Y        uint32 `json:"y"`
 			} `json:"objects,omitempty"`
 		} `json:"layers"`
 	}
@@ -84,7 +84,7 @@ func LoadMap(gd GameData, res string) Map {
 	m.Tilemap = loadTexture(gd, filepath.Join(RES_DIR, MAP_DIR, res[:strings.LastIndex(res, ".")]+".png"))
 	{
 		_, _, w, _, _ := m.Tilemap.Query()
-		m.TilemapWidth = uint(w) / 32
+		m.TilemapWidth = uint(w) / TileSize
 	}
 	m.Name = md.Properties.Name
 	m.Width = md.Width

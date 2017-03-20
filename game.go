@@ -21,10 +21,9 @@ type Game struct {
 }
 
 func (g *Game) Init(gd GameData) {
-
 	p := &g.Player
-	p.Width = 32
-	p.Height = 32 * 2
+	p.Width = TileSize
+	p.Height = TileSize * 2
 	g.Map = LoadMap(gd, "1.json")
 	p.Position.X = float32(g.Map.Spawn.X)
 	p.Position.Y = float32(g.Map.Spawn.Y)
@@ -52,13 +51,6 @@ func (g *Game) Run(gd GameData) Scene {
 			const GRAVITY = 1
 			w, h, _ := gd.Render.GetRendererOutputSize()
 			p := &g.Player
-			floored := func() bool {
-				if uint(p.Position.Y)%32 != 0 {
-					return false
-				}
-				// vlalala
-				return true
-			}
 
 			kb := sdl.GetKeyboardState()
 			if kb[sdl.SCANCODE_LEFT] != 0 {
@@ -66,26 +58,29 @@ func (g *Game) Run(gd GameData) Scene {
 			} else if kb[sdl.SCANCODE_RIGHT] != 0 {
 				p.Velocity.X += 5
 			}
-			f := floored()
-			if (f || p.CanDoubleJump) && kp.JumpUp {
-				if !f {
-					p.CanDoubleJump = false
-				}
+			if kp.JumpUp {
 				p.Velocity.Y -= 20
 			}
 			p.Velocity.Y += GRAVITY
 			p.Velocity.X = Clamp(p.Velocity.X, -5, 5)
-			p.Velocity.Y = Clamp(p.Velocity.Y, -30, 20)
+			p.Velocity.Y = Clamp(p.Velocity.Y, -40, 40)
 			p.Position = p.Position.Add(p.Velocity)
 
 			p.Position.X = Clamp(p.Position.X, 0, float32(w-int(p.Width)))
 			p.Position.Y = Clamp(p.Position.Y, 0, float32(h-int(p.Height)))
 
-			if floored() {
-				p.CanDoubleJump = true
-				p.Velocity.X = 0
-				p.Velocity.Y = 0
+			for {
+				c := g.Map.Collides(uint32(p.Position.X), uint32(p.Position.Y),
+					uint32(p.Width), uint32(p.Height))
+				if c.Floor {
+					p.Position.Y = ((p.Position.Y - 1) / TileSize) * TileSize
+					p.Velocity.Y = 0
+					p.Velocity.X = 0
+				} else {
+					break
+				}
 			}
+
 		}
 		gd.Render.SetDrawColor(0x00, 0x00, 0x00, 0xFF)
 		gd.Render.Clear()
